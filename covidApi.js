@@ -9,7 +9,6 @@ function drawRegionsMap(type) {
         type = 'cases'
     }
     var charData = google.visualization.arrayToDataTable(main(type));
-
     var options = {colorAxis: {colors: ['#05AF00','#970000']},
     backgroundColor: '#81d4fa',
     datalessRegionColor: '#f8bbd0',
@@ -25,7 +24,7 @@ function changeMap(type){
         type = "vaccines"
     }
     else if(type == 2){
-        type =  "history"
+        type =  "history?status=deaths"
     }
     else{
         type = 'cases'
@@ -67,7 +66,7 @@ function makeCovidCountryVaccinesList(apiJson)
     data.pop(); //Delete global from our data
     return data;
 }
-
+/*
 function makeCovidCountryHistoryList(apiJson){
     let data=[];
     let header = ["Country", "Population","Dados"];
@@ -75,7 +74,7 @@ function makeCovidCountryHistoryList(apiJson){
     for(let i in apiJson){
         let temp=[];
         if(i != "World"){
-            temp[0]=apiJson[i].All.country
+            temp[0]=apiJson[i].All.country          
             temp[1]=apiJson[i].All.population
             temp[2]=apiJson[i].All.dates
             data.push(temp);
@@ -84,13 +83,19 @@ function makeCovidCountryHistoryList(apiJson){
     data.pop(); //Delete global from our data
     return data;
 }
-
+*/
 
 function apiRequest(url){
-    let request = new XMLHttpRequest();
-    request.open("GET",url,false);
-    request.send();
-    return request.responseText;
+    let result = localStorage.getItem(url);
+    if(!result){
+        let request = new XMLHttpRequest();
+        request.open("GET",url,false);
+        request.send();
+        result = request.responseText;
+        localStorage.setItem(url,result);
+    }
+    return result;
+    //return JSON.parse(request.responseText);
 }
 
 function getsRequest(url,type){
@@ -100,14 +105,18 @@ function getsRequest(url,type){
 
 function main(type){
     let url = "https://covid-api.mmediagroup.fr/v1/";
-    let apiData = (getsRequest(url,type));
-    let apiJson = JSON.parse(apiData);
+    let apiData;
+    let apiJson
+    
+    apiData=(getsRequest(url,type));
+    apiJson = JSON.parse(apiData);
     
     switch(type){
         case 'cases':
+            console.log(apiData);
             return makeCovidCountryCasesList(apiJson);
             break;
-        case'vaccines':
+         case'vaccines':
             return makeCovidCountryVaccinesList(apiJson);
             break;
         case'history':makeCovidCountryHistoryList(apiJson);
@@ -115,4 +124,4 @@ function main(type){
     }
     
 }
-
+localStorage.clear();
